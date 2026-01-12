@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manhua Reader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background-color: #0d0d0d;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .reader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            gap: 0;
+        }
+
+        .page {
+            width: 90%;
+            max-width: 900px;
+            /* margin-bottom: 5px; */
+        }
+
+        .page img {
+            width: 100%;
+            height: auto;
+            display: block;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .page-number {
+            text-align: center;
+            color: #888;
+            /* padding: 10px; */
+            font-size: 14px;
+        }
+
+        .loading {
+            color: #fff;
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0d0d0d;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📖 Manhua Reader</h1>
+    </div>
+
+    <div class="reader-container" id="reader">
+        <div class="loading">Loading images...</div>
+    </div>
+
+    <script>
+        // Get all translated images from the translations folder
+        const translationsFolder = '../translations/';
+        
+        async function loadImages() {
+            const readerContainer = document.getElementById('reader');
+            
+            try {
+                // Fetch the images list from JSON
+                const response = await fetch('images.json');
+                const imageFiles = await response.json();
+                
+                readerContainer.innerHTML = '';
+
+                if (imageFiles.length === 0) {
+                    readerContainer.innerHTML = '<div class="loading">No images found. Please run the translation script first.</div>';
+                    return;
+                }
+
+                imageFiles.forEach((filename, index) => {
+                    const pageDiv = document.createElement('div');
+                    pageDiv.className = 'page';
+
+                    const img = document.createElement('img');
+                    img.src = translationsFolder + filename;
+                    img.alt = `Page ${index + 1}`;
+                    img.loading = 'lazy';
+
+                    // Handle image load error
+                    img.onerror = function() {
+                        pageDiv.style.display = 'none';
+                    };
+
+                    const pageNumber = document.createElement('div');
+                    pageNumber.className = 'page-number';
+                    // pageNumber.textContent = `Page ${index + 1}`;
+
+                    pageDiv.appendChild(img);
+                    pageDiv.appendChild(pageNumber);
+                    readerContainer.appendChild(pageDiv);
+                });
+            } catch (error) {
+                readerContainer.innerHTML = '<div class="loading">Error loading images. Please run: python web/generate_reader.py</div>';
+                console.error('Error:', error);
+            }
+        }
+
+        // Load images when page loads
+        window.addEventListener('load', loadImages);
+    </script>
+</body>
+</html>
